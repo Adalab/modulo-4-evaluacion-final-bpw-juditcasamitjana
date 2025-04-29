@@ -282,10 +282,15 @@ app.delete("/results/:id", async (req, res) => {
 app.get("/drivers/:idDriver", async (req, res) => {
     const connection = await getDBConnection();
     const driverId = req.params.idDriver;
-    const sqlQuery = "SELECT * FROM drivers WHERE id = ?";
+    const sqlQuery =
+        "SELECT * FROM drivers LEFT JOIN driver_info ON drivers.id = driver_info.driver_id WHERE drivers.id = ?";
     const [result] = await connection.query(sqlQuery, [driverId]);
     console.log(result);
     connection.end();
+
+    if (!result[0]) {
+        res.status(404).send("<html>Not Found</html>");
+    }
 
     res.render("driverDetails", { ...result[0] });
 });
