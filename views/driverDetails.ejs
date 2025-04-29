@@ -3,17 +3,109 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Driver detail</title>
+        <title>Driver Detail</title>
+        <style>
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #0c0c0c;
+                color: #f1f1f1;
+                margin: 0;
+                padding: 2rem;
+                display: flex;
+                justify-content: center;
+            }
+
+            .driver-card {
+                max-width: 900px;
+                width: 100%;
+                background-color: #1a1a1a;
+                border: 2px solid #e10600;
+                border-radius: 12px;
+                padding: 2rem;
+                box-shadow: 0 0 25px rgba(255, 0, 0, 0.4);
+            }
+
+            h1 {
+                font-size: 2.5rem;
+                color: #e10600;
+                margin-bottom: 1.5rem;
+            }
+
+            .driver-photo {
+                text-align: center;
+                margin-bottom: 1rem;
+            }
+
+            .driver-photo img {
+                max-width: 100%;
+                border-radius: 10px;
+                box-shadow: 0 0 15px #e10600aa;
+            }
+
+            .car-team {
+                margin-top: 1rem;
+                font-size: 1.6rem;
+                font-weight: bold;
+                color: #fff;
+                background-color: #e10600;
+                display: inline-block;
+                padding: 0.4rem 1rem;
+                border-radius: 5px;
+            }
+
+            .driver-images {
+                display: flex;
+                gap: 1rem;
+                margin-top: 2rem;
+                flex-wrap: wrap;
+            }
+
+            .driver-images img {
+                flex: 1 1 48%;
+                border-radius: 10px;
+                max-height: 300px;
+                object-fit: cover;
+                box-shadow: 0 0 15px #000;
+            }
+
+            .flag {
+                font-size: 2rem;
+                margin-left: 0.5rem;
+            }
+
+            .age {
+                font-size: 1.2rem;
+                color: #aaa;
+            }
+
+            @media (max-width: 768px) {
+                .driver-images {
+                    flex-direction: column;
+                }
+
+                .driver-images img {
+                    width: 100%;
+                }
+            }
+        </style>
     </head>
     <body>
-        <div>
+        <div class="driver-card">
             <h1>
-                <%= first_name %> <%= last_name%> <%= age %> <%= nationality %>
-                <%= car_number %> <%= team %>
+                <%= first_name %> <%= last_name %>
+                <span class="age">(<%= age %>)</span>
+                <span class="flag"><%= nationality %></span>
             </h1>
-            <img src="<%= photo_driver %>" alt="photo driver" width="600" />
-            <img src="<%= photo_car %>" alt="photo car" width="600" />
-            <img src="<%= photo_helmet2025 %>" alt="photo helmet" width="600" />
+
+            <div class="driver-photo">
+                <img src="<%= photo_driver %>" alt="photo driver" />
+                <p class="car-team">#<%= car_number %> — <%= team %></p>
+            </div>
+
+            <div class="driver-images">
+                <img src="<%= photo_car %>" alt="photo car" />
+                <img src="<%= photo_helmet2025 %>" alt="photo helmet" />
+            </div>
         </div>
     </body>
 </html>
