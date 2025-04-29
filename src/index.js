@@ -4,12 +4,14 @@ const mysql = require("mysql2/promise");
 
 const app = express();
 
+require("dotenv").config();
+
 async function getDBConnection() {
     const connection = await mysql.createConnection({
-        host: "localhost",
-        user: "root",
-        password: "@dalab",
-        database: "f1_bahrain_2025", //DUDAAAAAAA
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
     });
     connection.connect();
     return connection;
