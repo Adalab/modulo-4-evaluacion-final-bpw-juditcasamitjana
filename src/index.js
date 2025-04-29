@@ -20,6 +20,11 @@ async function getDBConnection() {
 app.use(cors());
 app.use(express.json());
 
+app.set("view engine", "ejs");
+// server.use(express.json({ limit: "10mb" }));
+// server.use(express.static(path.join(__dirname, "public-css")));
+// server.use(express.static(path.join(__dirname, "public-images")));
+
 const port = 5001;
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
@@ -272,4 +277,15 @@ app.delete("/results/:id", async (req, res) => {
             message: "Error deleting results",
         });
     }
+});
+
+app.get("/drivers/:idDriver", async (req, res) => {
+    const connection = await getDBConnection();
+    const driverId = req.params.idDriver;
+    const sqlQuery = "SELECT * FROM drivers WHERE id = ?";
+    const [result] = await connection.query(sqlQuery, [driverId]);
+    console.log(result);
+    connection.end();
+
+    res.render("driverDetails", { ...result[0] });
 });
