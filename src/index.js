@@ -25,7 +25,6 @@ app.listen(port, () => {
 
 // C /driver + /results
 app.post("/drivers", async (req, res) => {
-    const connection = await getDBConnection();
     const { first_name, last_name, nationality, car_number, team } = req.body;
 
     if (!first_name || !last_name || !nationality || !car_number || !team) {
@@ -36,6 +35,8 @@ app.post("/drivers", async (req, res) => {
         });
         return;
     }
+
+    const connection = await getDBConnection();
 
     try {
         const sql =
@@ -58,14 +59,12 @@ app.post("/drivers", async (req, res) => {
         await connection.end();
         res.status(500).json({
             success: false,
-            message: "Database error",
-            error: error.message,
+            message: "The driver data could not be inserted",
         });
     }
 });
 
 app.post("/results", async (req, res) => {
-    const connection = await getDBConnection();
     const { position, car_number, race_time, points } = req.body;
 
     if (
@@ -82,6 +81,7 @@ app.post("/results", async (req, res) => {
         return;
     }
 
+    const connection = await getDBConnection();
     try {
         const sql = `INSERT INTO bahrain_2025_results 
         (position, car_number, race_time, points) 
@@ -102,20 +102,19 @@ app.post("/results", async (req, res) => {
         await connection.end();
         res.status(500).json({
             success: false,
-            message: "Database error",
-            error: error.message,
+            message: "The results data could not be inserted",
         });
     }
 });
 
 // R /drivers + /results
 app.get("/drivers", async (req, res) => {
+    const connection = await getDBConnection();
     try {
-        const connection = await getDBConnection();
         const sqlQuery = "SELECT * FROM drivers";
         const [driversresults] = await connection.query(sqlQuery);
 
-        connection.end();
+        await connection.end();
 
         res.status(200).json({
             info: {
@@ -124,17 +123,21 @@ app.get("/drivers", async (req, res) => {
             results: driversresults,
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        await connection.end();
+        res.status(500).json({
+            success: false,
+            message: "The drivers data could not be obtained",
+        });
     }
 });
 
 app.get("/results", async (req, res) => {
+    const connection = await getDBConnection();
     try {
-        const connection = await getDBConnection();
         const sqlQuery = "SELECT * FROM bahrain_2025_results";
         const [bahrainresults] = await connection.query(sqlQuery);
 
-        connection.end();
+        await connection.end();
 
         res.status(200).json({
             info: {
@@ -143,36 +146,67 @@ app.get("/results", async (req, res) => {
             results: bahrainresults,
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        await connection.end();
+        res.status(500).json({
+            success: false,
+            message: "The results data could not be obtained",
+        });
     }
 });
 
 // U /drivers + /results
 app.put("/drivers/:id", async (req, res) => {
     const connection = await getDBConnection();
-    const { id } = req.params;
-    const { first_name, last_name, nationality, car_number, team } = req.body;
-    const sqlQuery =
-        "UPDATE drivers SET first_name = ?, last_name = ?, nationality = ?, car_number = ?, team = ? WHERE id = ?";
-    const [result] = await connection.query(sqlQuery, [
-        first_name,
-        last_name,
-        nationality,
-        car_number,
-        team,
-        id,
-    ]);
-    connection.end();
+    try {
+        const { id } = req.params;
+        const { first_name, last_name, nationality, car_number, team } =
+            req.body;
 
-    res.status(200).json({
-        success: true,
-        message: "Driver updated",
-    });
+        if (!first_name || !last_name || !nationality || !car_number || !team) {
+            res.status(400).json({
+                success: false,
+                message: "Bad params. All fields are required",
+            });
+            return;
+        }
+        const sqlQuery =
+            "UPDATE drivers SET first_name = ?, last_name = ?, nationality = ?, car_number = ?, team = ? WHERE id = ?";
+        const [result] = await connection.query(sqlQuery, [
+            first_name,
+            last_name,
+            nationality,
+            car_number,
+            team,
+            id,
+        ]);
+        await connection.end();
 
-    app.put("/results/:id", async (req, res) => {
-        const connection = await getDBConnection();
+        res.status(200).json({
+            success: true,
+            message: "Driver updated",
+        });
+    } catch (error) {
+        await connection.end();
+        res.status(500).json({
+            success: false,
+            message: "Error updating drivers",
+        });
+    }
+});
+
+app.put("/results/:id", async (req, res) => {
+    const connection = await getDBConnection();
+    try {
         const { id } = req.params;
         const { position, car_number, race_time, points } = req.body;
+
+        if (!position || !car_number || !race_time || !points) {
+            res.status(400).json({
+                success: false,
+                message: "Bad params. All fields are required",
+            });
+            return;
+        }
         const sqlQuery =
             "UPDATE bahrain_2025_results SET position = ?, car_number = ?, race_time = ?, points = ? WHERE id = ?";
         const [result] = await connection.query(sqlQuery, [
@@ -182,36 +216,58 @@ app.put("/drivers/:id", async (req, res) => {
             points,
             id,
         ]);
-        connection.end();
+        await connection.end();
 
         res.status(200).json({
             success: true,
             message: "Race result updated",
         });
-    });
+    } catch (error) {
+        await connection.end();
+        res.status(500).json({
+            success: false,
+            message: "Error updating results",
+        });
+    }
 });
 
 // D /drivers + /results
 app.delete("/drivers/:id", async (req, res) => {
     const connection = await getDBConnection();
-    const { id } = req.params;
-    const sqlQuery = "DELETE FROM drivers WHERE id = ?";
-    const [result] = await connection.query(sqlQuery, [id]);
-    connection.end();
-    res.status(200).json({
-        status: true,
-        message: "Driver deleted",
-    });
+    try {
+        const { id } = req.params;
+        const sqlQuery = "DELETE FROM drivers WHERE id = ?";
+        const [result] = await connection.query(sqlQuery, [id]);
+        await connection.end();
+        res.status(200).json({
+            status: true,
+            message: "Driver deleted",
+        });
+    } catch (error) {
+        await connection.end();
+        res.status(500).json({
+            success: false,
+            message: "Error deleting driver",
+        });
+    }
 });
 
 app.delete("/results/:id", async (req, res) => {
     const connection = await getDBConnection();
-    const { id } = req.params;
-    const sqlQuery = "DELETE FROM bahrain_2025_results WHERE id = ?";
-    const [result] = await connection.query(sqlQuery, [id]);
-    connection.end();
-    res.status(200).json({
-        success: true,
-        message: "Race result deleted",
-    });
+    try {
+        const { id } = req.params;
+        const sqlQuery = "DELETE FROM bahrain_2025_results WHERE id = ?";
+        const [result] = await connection.query(sqlQuery, [id]);
+        await connection.end();
+        res.status(200).json({
+            success: true,
+            message: "Race result deleted",
+        });
+    } catch (error) {
+        await connection.end();
+        res.status(500).json({
+            success: false,
+            message: "Error deleting results",
+        });
+    }
 });
